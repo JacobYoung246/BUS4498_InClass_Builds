@@ -7,16 +7,16 @@
 
 ### System Designer Name
 
-[Jacob Young]
+Jacob Young
 
 
 ### System Name
 
-[Use a default name "HackTrack" or enter the name you choose for the system.]
+HackTrack
 
 ### System Goal
-[Read Chapter 2 Section 2.1, then enter the well-structured goal of your agentic system]
+For CPVC, accurate attendance tracking tool, measured by attendance-to-registration rate moving from 40% to 100%, without crossing the privacy boundaries and avoiding excessive communication. 
 
 ### Who Is Better Off When This Works?
 
-[In one complete sentence, identify who will be better off when the system works.]
+CVPC will be better off when this works because they will have accurate headcount of the attendance of their events and will be able to properly purchase the correct amount of resources needed to supply their events. 
