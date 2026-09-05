@@ -24,6 +24,8 @@ The participant’s attendance status is recorded at event check-in, and the for
 
 ### 1.5 Workflow Diagram
 
+
+```mermaid
 flowchart TD
     T1["T1: Record registration"] --> T2["T2: Estimate initial attendance"]
     T2 --> T3["T3: Send confirmation request"]
