@@ -20,25 +20,4 @@ The system boundary is that HackTrack may use only event-level and aggregate reg
 
 ### Who Is Better Off When This Works?
 
-CPVC will be better off because organizers will receive a defensible resource recommendation before purchasing and can balance shortage risk, leftover risk, and budget constraints using the best available attendance evidence.# About the Agentic System
-
-**A Hackathon Registration and Attendance Planning Agent**
-> **Problem to be solved**: The Cal Poly Vibe Coding Club (CPVC) is planning a campus-wide AI Hackathon event for students. Participants register before the event, but not everyone who registers will actually attend. Some participants may change their plans without canceling, while others may remain unsure until shortly before the event. The attendance-to-registration rate of CPVC's last build event was roughly at 40%. Because registration totals do not accurately represent actual attendance, CPVC organizers have difficulty deciding how much food, how many drinks, and how much event swag to prepare. Planning for too many attendees wastes the club’s limited budget. Planning for too few may leave participants without adequate food or materials and negatively affect their event experience. CPVC currently relies mainly on the number of registrations and the organizers’ personal judgment. The club needs a more reliable and manageable way to anticipate actual attendance while respecting participants’ privacy and avoiding excessive communication.
-
-*Replace every bracketed prompt below with your information. Delete this instruction and any unused placeholder text before committing the completed charter.*
-
-### System Designer Name
-
-Jacob Young
-
-
-### System Name
-
-HackTrack
-
-### System Goal
-For CPVC, accurate attendance tracking tool, measured by attendance-to-registration rate moving from 40% to 100%, without crossing the privacy boundaries and avoiding excessive communication. 
-
-### Who Is Better Off When This Works?
-
-CVPC will be better off when this works because they will have accurate headcount of the attendance of their events and will be able to properly purchase the correct amount of resources needed to supply their events. 
+CPVC will be better off because organizers will receive a defensible resource recommendation before purchasing and can balance shortage risk, leftover risk, and budget constraints using the best available attendance evidence.
