@@ -5,6 +5,12 @@
 task_id: T9
 task_name: Plan Food, Drinks, and Swag
 task_owner: CPVC event organizer
+# Agent Inference Configuration
+Provider: Groq
+Model: "openai/gpt-oss-20b"
+Role: Validate planning inputs; interpret attendance uncertainty; calculate supply requirements; compare planning scenarios; prepare a draft supply recommendation.
+Maximum inference requests per task run: 6
+On inference failure or exhausted limits: Record the unresolved status and hand the case to CPVC event organizer or designated resource-planning reviewer.
 ```
 
 ## 1. Task Goal
@@ -38,6 +44,63 @@ task_owner: CPVC event organizer
 - **Source:** T12: Update aggregate forecast data or approved CPVC event records
 
 ## 3. Tool Permissions and Boundaries
+
+### Task-Wide Limits
+
+- **Total task timeout:** 20 minutes per task run, including inference requests, tool calls, retries, and waiting.
+- **Maximum tool calls:** 10 total calls across all tools during one task run; retries count toward this total.
+
+### Tool 1
+
+- **Tool name:** `retrieve_approved_planning_records`
+- **Input:** Event resource requirements; Budget and purchasing constraints; Historical resource outcomes
+- **Output:** Validated planning inputs and an evidence summary
+- **Implementation Route:** Read-only file operations, database queries, or web API calls to approved planning sources
+- **Integration approach:** Direct integration with approved CPVC planning records
+- **Role in this task:** Support **Validate planning inputs** by checking completeness, freshness, consistency, and approved-source provenance
+- **Task timeout:** 3 minutes
+- **Maximum retries:** 1
+- **Retry only when:** The read-only request times out or an approved source reports a temporary unavailability; wait 30 seconds before one additional attempt. Do not retry for missing information, conflicting records, or an ambiguous result; record the issue and hand off. The tool is read-only, so a repeated call cannot create duplicate records or orders.
+- **On timeout, exhausted retries, or an error that cannot be retried:** Record which input was unavailable or inconsistent, mark the task escalated, and hand the case to the CPVC event organizer or designated resource-planning reviewer. Do not continue as if the input were validated.
+
+### Tool 2
+
+- **Tool name:** `calculate_supply_requirements`
+- **Input:** Attendance forecast range; Event resource requirements; Budget and purchasing constraints
+- **Output:** Scenario quantities, package rounding, estimated cost, shortage risk, and leftover risk
+- **Implementation Route:** Calculation functions or spreadsheet scripts using validated inputs
+- **Integration approach:** Direct integration with the calculation function or planning spreadsheet
+- **Role in this task:** Support **Interpret attendance uncertainty** and **Calculate supply requirements**
+- **Task timeout:** 4 minutes
+- **Maximum retries:** 1
+- **Retry only when:** The calculation fails because of a transient execution error while the validated inputs are unchanged; wait 30 seconds, then retry once. Do not retry for missing prices, package sizes, inventory, requirements, or budget values; retrieve the missing information with Tool 1 or hand off. The tool produces a draft calculation only and changes no external records, so a permitted retry is duplicate-safe.
+- **On timeout, exhausted retries, or an error that cannot be retried:** Record the calculation status and the specific missing or failed input, mark the task escalated, and hand the case to the CPVC event organizer or designated resource-planning reviewer. Do not present partial calculations as a completed recommendation.
+
+### Tool 3
+
+- **Tool name:** `compare_planning_scenarios`
+- **Input:** Attendance forecast range; Event resource requirements; Budget and purchasing constraints; Historical resource outcomes
+- **Output:** Compared conservative, balanced, and budget-sensitive alternatives; selected planning scenario; proposed buffer; and risk tradeoff
+- **Implementation Route:** Calculation functions or spreadsheet scripts that compare approved quantities, costs, shortage risk, and leftover risk
+- **Integration approach:** Direct integration with the scenario-comparison function or planning spreadsheet
+- **Role in this task:** Support **Compare planning scenarios** and adaptive selection of a feasible plan before human escalation
+- **Task timeout:** 4 minutes
+- **Maximum retries:** 0
+- **Retry only when:** Not applicable — retries are not permitted. The tool must explore feasible alternatives, including reducing buffers or comparing lower-cost approved options, before concluding that no acceptable plan exists.
+- **On timeout, exhausted retries, or an error that cannot be retried:** Record the alternatives evaluated and the unresolved constraint, mark the task escalated, and hand the case to the CPVC event organizer or designated resource-planning reviewer. Do not select an unsupported scenario or continue as if comparison succeeded.
+
+### Tool 4
+
+- **Tool name:** `prepare_supply_recommendation`
+- **Input:** Attendance forecast range; Event resource requirements; Budget and purchasing constraints; Historical resource outcomes
+- **Output:** Draft quantities for food, drinks, and swag; evidence summary; unresolved issues; and handoff note
+- **Implementation Route:** File operations and formatting functions or scripts that assemble the draft deliverable
+- **Integration approach:** Direct integration with the draft-generation function; no external messages, purchases, or record changes
+- **Role in this task:** Support **Prepare supply recommendation** and format the outbound deliverable for H1 organizer review
+- **Task timeout:** 3 minutes
+- **Maximum retries:** 0
+- **Retry only when:** Not applicable — retries are not permitted. The tool may format only evidence produced by the permitted subtasks and may not fill gaps with invented prices, quantities, inventory, requirements, or approvals.
+- **On timeout, exhausted retries, or an error that cannot be retried:** Record that the draft deliverable was not completed, mark the task escalated, and hand the case to the CPVC event organizer or designated resource-planning reviewer. Do not send or present an incomplete draft as final.
 
 ## 4. How the Agent Should Reason
 
