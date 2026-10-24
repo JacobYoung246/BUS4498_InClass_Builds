@@ -19,7 +19,7 @@
   const result = document.getElementById("result");
   const board = document.getElementById("board");
   const refreshButton = document.getElementById("refresh");
-  const chips = document.querySelectorAll(".chip");
+  const freeFoodButton = document.getElementById("free-food-only");
 
   const signInForm = document.getElementById("sign-in-form");
   const signInButton = document.getElementById("sign-in-button");
@@ -32,7 +32,7 @@
   let moderator = null;
 
   let events = [];
-  let filter = "all";
+  let freeFoodOnly = false;
 
   // ---------- small helpers ----------
 
@@ -118,10 +118,10 @@
   }
 
   function renderBoard() {
-    const shown = filter === "food" ? events.filter((e) => e.free_food) : events;
+    const shown = freeFoodOnly ? events.filter((e) => e.free_food) : events;
     board.replaceChildren();
     if (shown.length === 0) {
-      board.append(el("li", "empty", filter === "food" ? "No free-food events right now." : "No events yet. Post the first one!"));
+      board.append(el("li", "empty", freeFoodOnly && events.length ? "No free-food events right now." : "No events yet. Post the first one!"));
       return;
     }
     shown.forEach((event) => board.append(eventCard(event)));
@@ -329,12 +329,11 @@
 
   refreshButton.addEventListener("click", loadEvents);
 
-  chips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      filter = chip.dataset.filter;
-      chips.forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
-      renderBoard();
-    });
+  // "Free food only" is one button: click to show only free-food events, click again to show everything.
+  freeFoodButton.addEventListener("click", () => {
+    freeFoodOnly = !freeFoodOnly;
+    freeFoodButton.setAttribute("aria-pressed", String(freeFoodOnly));
+    renderBoard();
   });
 
   loadEvents();
