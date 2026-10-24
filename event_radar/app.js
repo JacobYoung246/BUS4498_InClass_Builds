@@ -21,6 +21,16 @@
   const refreshButton = document.getElementById("refresh");
   const chips = document.querySelectorAll(".chip");
 
+  const signInForm = document.getElementById("sign-in-form");
+  const signInButton = document.getElementById("sign-in-button");
+  const signInResult = document.getElementById("sign-in-result");
+  const signedOutPanel = document.getElementById("mod-signed-out");
+  const signedInPanel = document.getElementById("mod-signed-in");
+  const modWho = document.getElementById("mod-who");
+  const signOutButton = document.getElementById("sign-out");
+  const waitingBoard = document.getElementById("waiting-board");
+  let moderator = null;
+
   let events = [];
   let filter = "all";
 
@@ -209,6 +219,110 @@
       postButton.disabled = false;
       postButton.textContent = "Send to the agent";
     }
+  });
+
+  // ---------- moderators ----------
+  // Signing in uses Supabase Auth. Signed in, the database rules let a moderator read every post
+  // and change only its status and review columns.
+
+  function reviewCard(event) {
+    const li = eventCard(event);
+    const review = el("div", "review");
+    review.append(el("p", "why", event.status_reason || "Waiting for a moderator."));
+    if (event.note_for_moderator) review.append(el("p", "", "Note from the agent: " + event.note_for_moderator));
+    review.append(el("p", "original", event.announcement));
+
+    const actions = el("p", "actions");
+    const approve = el("button", "", "Approve");
+    approve.type = "button";
+    const reject = el("button", "ghost", "Reject");
+    reject.type = "button";
+    approve.addEventListener("click", () => decide(event, "published", [approve, reject]));
+    reject.addEventListener("click", () => decide(event, "rejected", [approve, reject]));
+    actions.append(approve, reject);
+    review.append(actions);
+
+    // The review goes inside the card's text column.
+    li.querySelector(".event-body").append(review);
+    return li;
+  }
+
+  async function loadWaiting() {
+    if (!moderator) return;
+    const { data, error } = await db
+      .from("events")
+      .select("*")
+      .eq("status", "waiting")
+      .order("created_at", { ascending: true });
+    if (error) {
+      waitingBoard.replaceChildren(el("li", "empty", "Couldn't load waiting posts. Please try again."));
+      console.error(error);
+      return;
+    }
+    waitingBoard.replaceChildren();
+    if (!data.length) {
+      waitingBoard.append(el("li", "empty", "Nothing is waiting for review."));
+      return;
+    }
+    data.forEach((event) => waitingBoard.append(reviewCard(event)));
+  }
+
+  async function decide(event, status, buttons) {
+    buttons.forEach((b) => (b.disabled = true));
+    const { data, error } = await db
+      .from("events")
+      .update({ status, reviewed_at: new Date().toISOString(), reviewed_by: moderator.email || "" })
+      .eq("id", event.id)
+      .select("id");
+    if (error || !data || !data.length) {
+      console.error(error);
+      buttons.forEach((b) => (b.disabled = false));
+      alert("Couldn't save your decision. Please sign in again and retry.");
+      return;
+    }
+    loadWaiting();
+    if (status === "published") loadEvents();
+  }
+
+  function showModerator(user) {
+    moderator = user;
+    signedOutPanel.hidden = !!user;
+    signedInPanel.hidden = !user;
+    if (user) {
+      modWho.textContent = user.email || "moderator";
+      loadWaiting();
+    } else {
+      waitingBoard.replaceChildren();
+    }
+  }
+
+  signInForm.addEventListener("submit", async (submitEvent) => {
+    submitEvent.preventDefault();
+    signInButton.disabled = true;
+    signInResult.hidden = true;
+    const { error } = await db.auth.signInWithPassword({
+      email: document.getElementById("mod-email").value.trim(),
+      password: document.getElementById("mod-password").value,
+    });
+    signInButton.disabled = false;
+    if (error) {
+      signInResult.className = "result error";
+      signInResult.replaceChildren(
+        el("p", "result-label", "Couldn't sign in"),
+        el("p", "", "That email and password didn't match a moderator account.")
+      );
+      signInResult.hidden = false;
+      return;
+    }
+    document.getElementById("mod-password").value = "";
+  });
+
+  signOutButton.addEventListener("click", () => db.auth.signOut());
+
+  // Keeps the moderator section in step with sign-in and sign-out (and a saved session on reload).
+  // The work runs after the callback returns, as supabase-js recommends.
+  db.auth.onAuthStateChange((_event, session) => {
+    setTimeout(() => showModerator(session ? session.user : null), 0);
   });
 
   // ---------- list controls ----------

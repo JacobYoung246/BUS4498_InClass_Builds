@@ -55,6 +55,30 @@
     </section>
   </main>
 
+  <div class="wrap">
+    <details class="card mod" id="mod">
+      <summary>Moderator sign-in</summary>
+      <div id="mod-signed-out">
+        <form id="sign-in-form">
+          <label for="mod-email">Email</label>
+          <input type="email" id="mod-email" autocomplete="username" required>
+          <label for="mod-password">Password</label>
+          <input type="password" id="mod-password" autocomplete="current-password" required>
+          <button type="submit" id="sign-in-button">Sign in</button>
+        </form>
+        <div id="sign-in-result" hidden aria-live="polite"></div>
+      </div>
+      <div id="mod-signed-in" hidden>
+        <div class="board-head">
+          <p class="muted">Signed in as <strong id="mod-who"></strong></p>
+          <button type="button" class="ghost" id="sign-out">Sign out</button>
+        </div>
+        <h3>Waiting for review</h3>
+        <ul class="board" id="waiting-board"></ul>
+      </div>
+    </details>
+  </div>
+
   <footer class="wrap foot">
     <p>A BUS 4498 practice build. Every club, event, and person in the sample posts is made up.</p>
   </footer>
